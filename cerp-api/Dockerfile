@@ -1,18 +1,25 @@
 # Use the official Node.js 14 image as the base image
-FROM node:18
+FROM node:18 as builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+
+# Use the official Node.js 14 image as the base image
+FROM node:18-alpine as runner
+COPY --from=builder /app /app
 
 # Set the working directory inside the container
 WORKDIR /app
 
 # Copy the package.json and package-lock.json files to the working directory
-COPY package*.json ./app
+
 
 #Check the files in the working directory
-RUN ls -al /app
-RUN cat /app/package.json
+
+#RUN cat /app/package.json
 
 # Install the project dependencies
-RUN npm install
+
 
 # Bundle app source
 COPY . .
