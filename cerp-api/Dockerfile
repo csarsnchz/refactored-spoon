@@ -1,25 +1,14 @@
 # Use the official Node.js 14 image as the base image
-FROM node:18 as builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-
-# Use the official Node.js 14 image as the base image
-FROM node:18-alpine as runner
-COPY --from=builder /app /app
+FROM node:18
 
 # Set the working directory inside the container
-WORKDIR /app
+WORKDIR /usr/src/app
 
 # Copy the package.json and package-lock.json files to the working directory
-
-
-#Check the files in the working directory
-
-#RUN cat /app/package.json
+COPY package*.json ./
 
 # Install the project dependencies
-
+RUN npm install
 
 # Bundle app source
 COPY . .
@@ -34,4 +23,5 @@ EXPOSE 5000
 RUN npx prisma generate 
 
 # Start the NestJS application
-CMD [ "npm", "run","start:prod" ]
+#CMD [ "npm", "run","start:prod" ]
+CMD [ "node", "dist/main.js" ]
