@@ -62,6 +62,7 @@ ENV jwtRefreshTokenKey="REFRESH"
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
+RUN npx prisma migrate dev --name init
 RUN npx prisma generate 
 
 EXPOSE 5000
