@@ -41,9 +41,13 @@ export class AuthService {
 
       async validateUser(dto: LoginDto) {
         const user = await this.userService.findByEmail(dto.username);
-    
+        const username = await this.userService.findByUser(dto.username);
+
         if (user && (await compare(dto.password, user.password))) {
           const { password, ...result } = user;
+          return result;
+        } else if (username && (await compare(dto.password, username.password))) {
+          const { password, ...result } = username;
           return result;
         }
         throw new UnauthorizedException('Username or password is incorrect');

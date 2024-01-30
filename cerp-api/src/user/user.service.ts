@@ -8,21 +8,24 @@ export class UserService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateUserDto) {
+    const email = dto.email.toLowerCase();
+    const username = dto.username.toLowerCase();
+
     let user = await this.prisma.user.findUnique({
       where: {
-        email: dto.email,
+        email: email,
       },
     });
 
-    if (user) throw new ConflictException('email duplicated');
+    if (user) throw new ConflictException('Email already exists');
 
     user = await this.prisma.user.findUnique({
       where: {
-        username: dto.username,
+        username: username,
       },
     });
 
-    if (user) throw new ConflictException('user duplicated');
+    if (user) throw new ConflictException('Username already exists');
 
     const newUser = await this.prisma.user.create({
       data: {
@@ -38,10 +41,19 @@ export class UserService {
   async findByEmail(email: string) {
     return await this.prisma.user.findUnique({
       where: {
-        email: email,
+        email: email.toLowerCase(),
       },
     });
   }
+
+  async findByUser(username: string) {
+    return await this.prisma.user.findUnique({
+      where: {
+        username: username.toLowerCase(),
+      },
+    });
+  }
+
   async findById(id: number) {
     return await this.prisma.user.findUnique({
       where: {
