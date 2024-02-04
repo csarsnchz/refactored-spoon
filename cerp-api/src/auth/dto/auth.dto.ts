@@ -7,4 +7,7 @@ export class LoginDto {
 
   @IsString()
   password: string;
+
+  @IsString()
+  tenant: string;
 }

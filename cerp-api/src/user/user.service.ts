@@ -1,61 +1,66 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma.service';
 import { CreateUserDto } from './dto/user.dto';
-import { hash } from 'bcrypt';
+import * as bcrypt from 'bcrypt';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService,private mailService: MailService) {}
 
   async create(dto: CreateUserDto) {
     const email = dto.email.toLowerCase();
-    const username = dto.username.toLowerCase();
+    const tenant = dto.tenant.toLowerCase();
+    const psw = await bcrypt.hash(dto.password, 10);
 
-    let user = await this.prisma.user.findUnique({
+    let tenants = await this.prisma.tenant.count({
+      where: {
+        tenant,
+      }
+    });
+
+    if (tenants===1) throw new ConflictException('Workspace no disponible');
+
+    let user = await this.prisma.users.count({
       where: {
         email: email,
+        tenant,
       },
     });
 
-    if (user) throw new ConflictException('Email already exists');
+    if (user===1) throw new ConflictException('El email ya fue utilizado en el workspace');
 
-    user = await this.prisma.user.findUnique({
-      where: {
-        username: username,
-      },
-    });
-
-    if (user) throw new ConflictException('Username already exists');
-
-    const newUser = await this.prisma.user.create({
-      data: {
-        ...dto,
-        password: await hash(dto.password, 10),
-      },
-    });
-
-    const { password, ...result } = newUser;
-    return result;
+    try{
+      const result = await this.prisma.$queryRaw`SELECT * FROM create_user_and_tenant(${dto.codTipoNegocio}, ${dto.codGiro}, ${email}, ${psw}, ${dto.tenant})`;
+      const codUser: string = result[0].coduser;
+      await this.mailService.sendUserConfirmation(dto.tenant,dto.email);      
+      return {codUser};
+    }catch (error) {
+      console.error('Error executing stored procedure:', error);
+      throw new ConflictException('Error inesperado');
+    }
   }
 
-  async findByEmail(email: string) {
-    return await this.prisma.user.findUnique({
+  async findByEmail(email: string, tenant: string) {
+    return await this.prisma.users.findFirst({
       where: {
         email: email.toLowerCase(),
+        tenant: tenant.toLowerCase(),
       },
     });
   }
 
-  async findByUser(username: string) {
-    return await this.prisma.user.findUnique({
+  async findByUser(username: string, tenant: string) {
+    return await this.prisma.users.findFirst({
       where: {
         username: username.toLowerCase(),
+        tenant: tenant.toLowerCase(),
       },
     });
   }
 
-  async findById(id: number) {
-    return await this.prisma.user.findUnique({
+  async findById(id: string) {
+    return await this.prisma.users.findFirst({
       where: {
         id: id,
       },

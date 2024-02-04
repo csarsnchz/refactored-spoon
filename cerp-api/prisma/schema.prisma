@@ -1,44 +1,127 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model tiponegocio {
-  codtiponegocio String @id @unique
-  nombre String @unique
-  descripcion String
-  created DateTime @default(now())
-  modified DateTime @default(now())
+model bitacora {
+  uuid     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  action   String?  @db.VarChar(255)
+  msg      String?  @db.VarChar(255)
+  creation DateTime @default(now()) @db.Timestamp(6)
+  username String   @db.Uuid
+  users    users    @relation(fields: [username], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model conftenant {
+  codcoftenant                     String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  coddivisa                        String  @db.VarChar(6)
+  simbolodivisa                    String? @db.VarChar(2)
+  tenant                           String  @db.VarChar(50)
+  logoheight                       String?
+  logowidth                        String?
+  logocenter                       String?
+  tenant_conftenant_tenantTotenant tenant  @relation("conftenant_tenantTotenant", fields: [tenant], references: [tenant], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model gironegocio {
+  codgiro    String    @id @db.VarChar(6)
+  nombregiro String?   @db.VarChar(255)
+  descgiro   String?   @db.VarChar(255)
+  subgiro    subgiro[]
+}
+
+model girostenant {
+  tenant                            String   @id @db.VarChar(50)
+  codsubgiro                        String?  @db.VarChar(6)
+  principal                         String?  @default("NO") @db.VarChar(2)
+  subgiro                           subgiro? @relation(fields: [codsubgiro], references: [codsubgiro], onDelete: NoAction, onUpdate: NoAction)
+  tenant_girostenant_tenantTotenant tenant   @relation("girostenant_tenantTotenant", fields: [tenant], references: [tenant], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model modulos {
+  codmodulo    String       @id @db.VarChar(6)
+  nombremodulo String?      @db.VarChar(255)
+  descmodulo   String?      @db.VarChar(255)
+  codsubmodulo String?      @db.VarChar(6)
+  rolmodulos   rolmodulos[]
+}
+
+model rolmodulos {
+  codrolmodulos String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  codroluser    String  @db.Uuid
+  codmodulo     String  @db.VarChar(6)
+  permisos      Int     @db.SmallInt
+  modulos       modulos @relation(fields: [codmodulo], references: [codmodulo], onDelete: NoAction, onUpdate: NoAction)
+  roluser       roluser @relation(fields: [codroluser], references: [codrol], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model roluser {
+  codrol     String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nomrol     String?      @db.VarChar(255)
+  decrol     String?      @db.VarChar(255)
+  tenant     String?      @db.VarChar(255)
+  rolmodulos rolmodulos[]
+  useraccess useraccess[]
+}
+
+model subgiro {
+  codsubgiro  String        @id @db.VarChar(6)
+  codgiro     String        @db.VarChar(6)
+  nomsubgiro  String?       @db.VarChar(255)
+  descsubgiro String?       @db.VarChar(255)
+  girostenant girostenant[]
+  gironegocio gironegocio   @relation(fields: [codgiro], references: [codgiro], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model tenant {
-  tenant String @id @unique
-  std String
-  created DateTime @default(now())
-  modified DateTime @default(now())
-  codtiponegocio String 
-  nomcomercial String
-  nombprofesional String
-  desctenant String
+  tenant                                 String       @id @db.VarChar(50)
+  std                                    String?      @db.VarChar(5)
+  creates                                DateTime     @default(now()) @db.Timestamp(6)
+  modify                                 DateTime     @default(now()) @db.Timestamp(6)
+  codtiponegocio                         String       @db.VarChar(5)
+  nomcomercial                           String?      @db.VarChar(255)
+  nombprofesional                        String?      @db.VarChar(255)
+  desctenant                             String?      @db.VarChar(255)
+  conftenant_conftenant_tenantTotenant   conftenant[] @relation("conftenant_tenantTotenant")
+  girostenant_girostenant_tenantTotenant girostenant? @relation("girostenant_tenantTotenant")
+  tiponegocio                            tiponegocio  @relation(fields: [codtiponegocio], references: [codtiponegocio], onDelete: NoAction, onUpdate: NoAction)
+  users_users_tenantTotenant             users[]      @relation("users_tenantTotenant")
 }
 
-model user {
-  id Int @id @default(autoincrement())
-  username String @unique
-  password String
-  firstname String
-  lastname String
-  state String
-  created DateTime @default(now())
-  modified DateTime @default(now())
-  email String @unique
-  counter Int @default(0)
-  tenant String
+model tiponegocio {
+  codtiponegocio String   @id @db.VarChar(5)
+  nombre         String?  @db.VarChar(255)
+  descripcion    String?  @db.VarChar(255)
+  tenant         tenant[]
+}
+
+model useraccess {
+  coduseraccess String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  codroluser    String  @db.Uuid
+  iduser        String  @db.Uuid
+  roluser       roluser @relation(fields: [codroluser], references: [codrol], onDelete: NoAction, onUpdate: NoAction)
+  users         users   @relation(fields: [iduser], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model users {
+  id                          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username                    String       @db.VarChar(25)
+  password                    String       @db.VarChar(60)
+  firstname                   String?      @db.VarChar(255)
+  lastname                    String?      @db.VarChar(255)
+  state                       String?      @db.VarChar(3)
+  creates                     DateTime     @default(now()) @db.Timestamp(6)
+  modify                      DateTime     @default(now()) @db.Timestamp(6)
+  email                       String       @db.VarChar(255)
+  counter                     Int?         @default(0)
+  tenant                      String       @db.VarChar(50)
+  bitacora                    bitacora[]
+  useraccess                  useraccess[]
+  tenant_users_tenantTotenant tenant       @relation("users_tenantTotenant", fields: [tenant], references: [tenant], onDelete: NoAction, onUpdate: NoAction, map: "users_telnant_fkey")
+
+  @@unique([username, tenant], map: "users_username_telnant_key")
 }
