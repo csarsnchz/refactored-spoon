@@ -33,8 +33,30 @@ export class UserService {
     try{
       const result = await this.prisma.$queryRaw`SELECT * FROM create_user_and_tenant(${dto.codTipoNegocio}, ${dto.codGiro}, ${email}, ${psw}, ${dto.tenant})`;
       const codUser: string = result[0].coduser;
-      await this.mailService.sendUserConfirmation(dto.tenant,dto.email);      
+      await this.mailService.sendUserConfirmation(dto.tenant,dto.email,codUser);      
       return {codUser};
+    }catch (error) {
+      console.error('Error executing stored procedure:', error);
+      throw new ConflictException('Error inesperado');
+    }
+  }
+
+  async activateUser(val) {
+
+    let user = await this.prisma.users.count({
+      where: {
+        id: val.idUser,
+        state: 'VAL'
+      }
+    });
+
+    if (user!==1) throw new ConflictException('No existe usuario para validar');
+
+    try{
+      const result = await this.prisma.$queryRaw`SELECT * FROM activate_user(uuid(${val.idUser}))`;
+      const code: string = result[0].activate_user;
+      //algun correo para confirmar la activacion   
+      return {code};
     }catch (error) {
       console.error('Error executing stored procedure:', error);
       throw new ConflictException('Error inesperado');
