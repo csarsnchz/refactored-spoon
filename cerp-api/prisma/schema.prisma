@@ -109,7 +109,6 @@ model useraccess {
 
 model users {
   id                          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username                    String       @db.VarChar(25)
   password                    String       @db.VarChar(60)
   firstname                   String?      @db.VarChar(255)
   lastname                    String?      @db.VarChar(255)
@@ -122,6 +121,4 @@ model users {
   bitacora                    bitacora[]
   useraccess                  useraccess[]
   tenant_users_tenantTotenant tenant       @relation("users_tenantTotenant", fields: [tenant], references: [tenant], onDelete: NoAction, onUpdate: NoAction, map: "users_telnant_fkey")
-
-  @@unique([username, tenant], map: "users_username_telnant_key")
 }

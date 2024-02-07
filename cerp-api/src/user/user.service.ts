@@ -72,13 +72,18 @@ export class UserService {
     });
   }
 
-  async findByUser(username: string, tenant: string) {
-    return await this.prisma.users.findFirst({
+  async findTenantByEmail(email: string){
+    return await this.prisma.users.findMany({
       where: {
-        username: username.toLowerCase(),
-        tenant: tenant.toLowerCase(),
+        email: email.toLocaleLowerCase(),
+        state: {
+          in: ['ACT','ACI']
+        },
       },
-    });
+      select: {
+        tenant: true,        
+      }
+    })
   }
 
   async findById(id: string) {

@@ -16,4 +16,10 @@ export class UserController {
   async registerUser(@Body() val) {
     return await this.userService.activateUser(val);
   }
+
+  @Get('userTenant/:email')
+  async getTenantByUser(@Param('email') email: string){
+    const tenants = await this.userService.findTenantByEmail(email);
+    return {count:tenants.length,tenants,}
+  }
 }
