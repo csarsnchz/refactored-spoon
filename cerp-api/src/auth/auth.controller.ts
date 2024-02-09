@@ -10,7 +10,7 @@ export class AuthController {
 
     constructor( 
         private userService: UserService,
-        private authService: AuthService,
+        private authService: AuthService
         ){}
 
     @Post('register')

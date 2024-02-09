@@ -2,17 +2,15 @@ import { IsString, IsEmail, IsOptional, IsInt, IsNotEmpty, Length } from 'class-
 
 export class CreateUserDto {
     @IsString()
-    username: string;
+    @IsNotEmpty()
+    codTipoNegocio: string;
 
     @IsString()
-    @IsOptional()
-    firstname: string;
-
-    @IsString()
-    @IsOptional()
-    lastname: string;
+    @IsNotEmpty()
+    codGiro: string;
 
     @IsEmail()
+    @IsNotEmpty()
     email: string;
 
     @IsNotEmpty()
@@ -20,14 +18,7 @@ export class CreateUserDto {
     @Length(8, 20, {message: 'Password must be at least 8 characters long'}) 
     password: string;
 
-    @IsString()
-    @IsOptional()
-    state: string;
-
-    @IsInt()
-    @IsOptional()
-    counter: number;
-
+    @IsNotEmpty()
     @IsString()
     tenant: string;
 }
