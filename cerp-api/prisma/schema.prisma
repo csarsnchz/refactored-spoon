@@ -50,6 +50,20 @@ model modulos {
   rolmodulos   rolmodulos[]
 }
 
+model notificaciones {
+  id          Int       @id @default(autoincrement())
+  user_id     String    @db.Uuid
+  icon        String?   @db.VarChar(50)
+  title       String?   @db.VarChar(255)
+  description String?
+  time        DateTime? @default(now()) @db.Timestamp(6)
+  color       String?   @db.VarChar(20)
+  status      String?   @db.VarChar(20)
+  url         String?   @db.VarChar(75)
+  is_viewed   Boolean?  @default(false)
+  users       users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "notificaciones_users_id_fk")
+}
+
 model rolmodulos {
   codrolmodulos String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   codroluser    String  @db.Uuid
@@ -108,17 +122,18 @@ model useraccess {
 }
 
 model users {
-  id                          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  password                    String       @db.VarChar(60)
-  firstname                   String?      @db.VarChar(255)
-  lastname                    String?      @db.VarChar(255)
-  state                       String?      @db.VarChar(3)
-  creates                     DateTime     @default(now()) @db.Timestamp(6)
-  modify                      DateTime     @default(now()) @db.Timestamp(6)
-  email                       String       @db.VarChar(255)
-  counter                     Int?         @default(0)
-  tenant                      String       @db.VarChar(50)
+  id                          String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  password                    String           @db.VarChar(60)
+  firstname                   String?          @db.VarChar(255)
+  lastname                    String?          @db.VarChar(255)
+  state                       String?          @db.VarChar(3)
+  creates                     DateTime         @default(now()) @db.Timestamp(6)
+  modify                      DateTime         @default(now()) @db.Timestamp(6)
+  email                       String           @db.VarChar(255)
+  counter                     Int?             @default(0)
+  tenant                      String           @db.VarChar(50)
   bitacora                    bitacora[]
+  notificaciones              notificaciones[]
   useraccess                  useraccess[]
-  tenant_users_tenantTotenant tenant       @relation("users_tenantTotenant", fields: [tenant], references: [tenant], onDelete: NoAction, onUpdate: NoAction, map: "users_telnant_fkey")
+  tenant_users_tenantTotenant tenant           @relation("users_tenantTotenant", fields: [tenant], references: [tenant], onDelete: NoAction, onUpdate: NoAction, map: "users_telnant_fkey")
 }
