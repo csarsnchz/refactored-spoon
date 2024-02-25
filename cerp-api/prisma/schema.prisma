@@ -102,6 +102,7 @@ model tenant {
   desctenant                             String?      @db.VarChar(255)
   conftenant_conftenant_tenantTotenant   conftenant[] @relation("conftenant_tenantTotenant")
   girostenant_girostenant_tenantTotenant girostenant? @relation("girostenant_tenantTotenant")
+  sucursal_sucursal_tenantTotenant       sucursal[]   @relation("sucursal_tenantTotenant")
   tiponegocio                            tiponegocio  @relation(fields: [codtiponegocio], references: [codtiponegocio], onDelete: NoAction, onUpdate: NoAction)
   users_users_tenantTotenant             users[]      @relation("users_tenantTotenant")
 }
@@ -136,4 +137,108 @@ model users {
   notificaciones              notificaciones[]
   useraccess                  useraccess[]
   tenant_users_tenantTotenant tenant           @relation("users_tenantTotenant", fields: [tenant], references: [tenant], onDelete: NoAction, onUpdate: NoAction, map: "users_telnant_fkey")
+}
+
+model Appointment {
+  appointmentId                Int               @id @default(autoincrement())
+  userId                       Int
+  professionalId               Int
+  serviceId                    Int
+  appointmentDate              DateTime
+  appointmentTime              DateTime
+  appointmentRecurring         Boolean           @default(false)
+  appointmentRecurrencePattern String?
+  statusId                     Int
+  Professional                 Professional      @relation(fields: [professionalId], references: [professionalId])
+  Service                      Service           @relation(fields: [serviceId], references: [serviceId])
+  AppointmentStatus            AppointmentStatus @relation(fields: [statusId], references: [statusId])
+  User                         User              @relation(fields: [userId], references: [id])
+}
+
+model AppointmentStatus {
+  statusId        Int          @id @default(autoincrement())
+  statusName     String        @unique
+  creationDate    DateTime     @default(now()) @db.Timestamp(6)
+  Appointment     Appointment[]
+}
+
+model Professional {
+  professionalId           Int                        @id @default(autoincrement())
+  professionalName         String
+  specializationId         Int?
+  professionalPhone        String?
+  professionalEmail        String                     @unique
+  Appointment              Appointment[]
+  Specialization           Specialization?            @relation(fields: [specializationId], references: [specializationId])
+  ProfessionalAvailability ProfessionalAvailability[]
+  WaitingList              WaitingList[]
+}
+
+model ProfessionalAvailability {
+  availabilityId String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  professionalId Int
+  date           DateTime
+  startTime      DateTime
+  endTime        DateTime
+  Professional   Professional @relation(fields: [professionalId], references: [professionalId])
+}
+
+model Service {
+  serviceId       Int           @id @default(autoincrement())
+  serviceName     String        @unique
+  serviceDuration Int
+  Appointment     Appointment[]
+  WaitingList     WaitingList[]
+}
+
+model Specialization {
+  specializationId   Int            @id @default(autoincrement())
+  specializationName String         @unique
+  Professional       Professional[]
+}
+
+model User {
+  id          Int           @id @default(autoincrement())
+  email       String        @unique
+  password    String
+  phone       String?
+  address     String?
+  Appointment Appointment[]
+  WaitingList WaitingList[]
+}
+
+model WaitingList {
+  waitingListId            Int          @id @default(autoincrement())
+  userId                   Int
+  professionalId           Int
+  serviceId                Int
+  waitingListRequestedDate DateTime
+  waitingListRequestedTime DateTime
+  Professional             Professional @relation(fields: [professionalId], references: [professionalId])
+  Service                  Service      @relation(fields: [serviceId], references: [serviceId])
+  User                     User         @relation(fields: [userId], references: [id])
+}
+
+model colaboradores {
+  id             Int       @id @default(autoincrement())
+  nombre         String    @db.VarChar(100)
+  apellido       String    @db.VarChar(100)
+  datosgenerales Json?
+  sucursal_id    Int?
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+  updated_at     DateTime? @default(now()) @db.Timestamp(6)
+  sucursal       sucursal? @relation(fields: [sucursal_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model sucursal {
+  id                             Int             @id @default(autoincrement())
+  tenant                         String          @db.VarChar(50)
+  nombre                         String          @db.VarChar(100)
+  direccion                      String          @db.VarChar(255)
+  telefono                       String          @db.VarChar(255)
+  activo                         Boolean         @default(true)
+  created_at                     DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at                     DateTime?       @default(now()) @db.Timestamp(6)
+  colaboradores                  colaboradores[]
+  tenant_sucursal_tenantTotenant tenant          @relation("sucursal_tenantTotenant", fields: [tenant], references: [tenant], onDelete: NoAction, onUpdate: NoAction)
 }
