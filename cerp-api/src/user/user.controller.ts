@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { UserUpdateDto } from './dto/user.dto';
 
 @Controller('user')
 export class UserController {
@@ -22,4 +23,17 @@ export class UserController {
     const tenants = await this.userService.findTenantByEmail(email);
     return {count:tenants.length,tenants,}
   }
+
+  @UseGuards(JwtGuard)
+  @Put('updateUsers')
+  async updateUsers(@Body() dto: UserUpdateDto){
+    return this.userService.updateUser(dto);
+  }
+
+  @UseGuards(JwtGuard)
+  @Put('updatePsw')
+  async updatePassword(@Body() dto: any){
+    return this.userService.changePassword(dto.idUser, dto.password);
+  }
+
 }

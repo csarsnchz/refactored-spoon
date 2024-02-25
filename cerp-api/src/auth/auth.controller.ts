@@ -4,13 +4,15 @@ import { UserService } from '../user/user.service';
 import { LoginDto } from './dto/auth.dto';
 import { AuthService } from './auth.service';
 import { RefreshJwtGuard } from './guards/refresh.guard';
+import { LogsService } from 'src/logs/logs.service';
 
 @Controller('auth')
 export class AuthController {
 
     constructor( 
         private userService: UserService,
-        private authService: AuthService
+        private authService: AuthService,
+        private logsService: LogsService,
         ){}
 
     @Post('register')
